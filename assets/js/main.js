@@ -1,137 +1,160 @@
 /*
-	Stellar by HTML5 UP
+	Overflow by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
+	var settings = {
+
+		// Full screen header?
+			fullScreenHeader: true,
+
+		// Parallax background effect?
+			parallax: true,
+
+		// Parallax factor (lower = more intense, higher = less intense).
+			parallaxFactor: 10
+
+	};
+
 	skel.breakpoints({
-		xlarge: '(max-width: 1680px)',
-		large: '(max-width: 1280px)',
-		medium: '(max-width: 980px)',
-		small: '(max-width: 736px)',
-		xsmall: '(max-width: 480px)',
-		xxsmall: '(max-width: 360px)'
+		wide: '(max-width: 1680px)',
+		normal: '(max-width: 1080px)',
+		narrow: '(max-width: 840px)',
+		mobile: '(max-width: 736px)'
 	});
 
 	$(function() {
 
 		var	$window = $(window),
-			$body = $('body'),
-			$main = $('#main');
+			$body = $('body');
+
+		if (skel.vars.mobile) {
+
+			settings.parallax = false;
+			$body.addClass('is-scroll');
+
+		}
 
 		// Disable animations/transitions until the page has loaded.
 			$body.addClass('is-loading');
 
 			$window.on('load', function() {
-				window.setTimeout(function() {
-					$body.removeClass('is-loading');
-				}, 100);
+				$body.removeClass('is-loading');
 			});
+
+		// CSS polyfills (IE<9).
+			if (skel.vars.IEVersion < 9)
+				$(':last-child').addClass('last-child');
 
 		// Fix: Placeholder polyfill.
 			$('form').placeholder();
 
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
+		// Prioritize "important" elements on mobile.
+			skel.on('+mobile -mobile', function() {
 				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
+					'.important\\28 mobile\\29',
+					skel.breakpoint('mobile').active
 				);
 			});
 
-		// Nav.
-			var $nav = $('#nav');
+		// Scrolly links.
+			$('.scrolly-middle').scrolly({
+				speed: 1000,
+				anchor: 'middle'
+			});
 
-			if ($nav.length > 0) {
+			$('.scrolly').scrolly({
+				speed: 1000,
+				offset: function() { return (skel.breakpoint('mobile').active ? 70 : 190); }
+			});
 
-				// Shrink effect.
-					$main
-						.scrollex({
-							mode: 'top',
-							enter: function() {
-								$nav.addClass('alt');
-							},
-							leave: function() {
-								$nav.removeClass('alt');
-							},
-						});
+		// Full screen header.
+			if (settings.fullScreenHeader) {
 
-				// Links.
-					var $nav_a = $nav.find('a');
+				var $header = $('#header');
 
-					$nav_a
-						.scrolly({
-							speed: 1000,
-							offset: function() { return $nav.height(); }
-						})
-						.on('click', function() {
+				if ($header.length > 0) {
 
-							var $this = $(this);
+					var $header_header = $header.find('header');
 
-							// External link? Bail.
-								if ($this.attr('href').charAt(0) != '#')
-									return;
+					$window
+						.on('resize.overflow_fsh', function() {
 
-							// Deactivate all links.
-								$nav_a
-									.removeClass('active')
-									.removeClass('active-locked');
+							if (skel.breakpoint('mobile').active)
+								$header.css('padding', '');
+							else {
 
-							// Activate link *and* lock it (so Scrollex doesn't try to activate other links as we're scrolling to this one's section).
-								$this
-									.addClass('active')
-									.addClass('active-locked');
+								var p = Math.max(192, ($window.height() - $header_header.outerHeight()) / 2);
+								$header.css('padding', p + 'px 0 ' + p + 'px 0');
+
+							}
 
 						})
-						.each(function() {
+						.trigger('resize.overflow_fsh');
 
-							var	$this = $(this),
-								id = $this.attr('href'),
-								$section = $(id);
+					$window.load(function() {
+						$window.trigger('resize.overflow_fsh');
+					});
 
-							// No section for this link? Bail.
-								if ($section.length < 1)
-									return;
-
-							// Scrollex.
-								$section.scrollex({
-									mode: 'middle',
-									initialize: function() {
-
-										// Deactivate section.
-											if (skel.canUse('transition'))
-												$section.addClass('inactive');
-
-									},
-									enter: function() {
-
-										// Activate section.
-											$section.removeClass('inactive');
-
-										// No locked links? Deactivate all links and activate this section's one.
-											if ($nav_a.filter('.active-locked').length == 0) {
-
-												$nav_a.removeClass('active');
-												$this.addClass('active');
-
-											}
-
-										// Otherwise, if this section's link is the one that's locked, unlock it.
-											else if ($this.hasClass('active-locked'))
-												$this.removeClass('active-locked');
-
-									}
-								});
-
-						});
+				}
 
 			}
 
-		// Scrolly.
-			$('.scrolly').scrolly({
-				speed: 1000
+		// Parallax background.
+
+			// Disable parallax on IE (smooth scrolling is jerky), and on mobile platforms (= better performance).
+				if (skel.vars.browser == 'ie'
+				||	skel.vars.mobile)
+					settings.parallax = false;
+
+			if (settings.parallax) {
+
+				var $dummy = $(), $bg;
+
+				$window
+					.on('scroll.overflow_parallax', function() {
+
+						// Adjust background position.
+							$bg.css('background-position', 'center ' + (-1 * (parseInt($window.scrollTop()) / settings.parallaxFactor)) + 'px');
+
+					})
+					.on('resize.overflow_parallax', function() {
+
+						// If we're in a situation where we need to temporarily disable parallax, do so.
+							if (!skel.breakpoint('wide').active
+							||	skel.breakpoint('narrow').active) {
+
+								$body.css('background-position', '');
+								$bg = $dummy;
+
+							}
+
+						// Otherwise, continue as normal.
+							else
+								$bg = $body;
+
+						// Trigger scroll handler.
+							$window.triggerHandler('scroll.overflow_parallax');
+
+					})
+					.trigger('resize.overflow_parallax');
+
+			}
+
+		// Poptrox.
+			$('.gallery').poptrox({
+				useBodyOverflow: false,
+				usePopupEasyClose: false,
+				overlayColor: '#0a1919',
+				overlayOpacity: (skel.vars.IEVersion < 9 ? 0 : 0.75),
+				usePopupDefaultStyling: false,
+				usePopupCaption: true,
+				popupLoaderText: '',
+				windowMargin: 10,
+				usePopupNav: true
 			});
 
 	});
