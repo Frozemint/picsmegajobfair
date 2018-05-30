@@ -1,0 +1,1 @@
+# Pics website template
