@@ -1937,7 +1937,9 @@
 
 		#header header {
 			display: inline-block;
-			padding: 0 0 4.5em 0;
+			padding: 2em;
+			border-radius: 10px;
+			background-color: rgba(158, 158, 158, 0.6);
 		}
 
 			#header header h1 {
