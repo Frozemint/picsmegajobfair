@@ -2396,6 +2396,7 @@
 				padding: 0.75em 0 0.75em 0;
 				width: 100%;
 				max-width: 320px;
+				margin-top: 15px;
 			}
 
 		/* Box */
@@ -2464,6 +2465,7 @@
 				#header header {
 					padding-left: 2em;
 					padding-right: 2em;
+					margin-bottom: 50px;
 				}
 
 					#header header h1 {
